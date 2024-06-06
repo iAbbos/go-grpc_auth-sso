@@ -1,10 +1,13 @@
 package main
 
 import (
+	"github.com/iAbbos/go-grpc_auth-sso/internal/app"
 	"github.com/iAbbos/go-grpc_auth-sso/internal/config"
 	"github.com/iAbbos/go-grpc_auth-sso/internal/pkg/lib/logger/handlers/slogpretty"
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 const (
@@ -14,18 +17,30 @@ const (
 )
 
 func main() {
-	//Implementing config
+	//Implemented config
 	cfg := config.MustLoad()
 
+	//Implemented logger
 	log := setupLogger(cfg.Env)
 
 	log.Info("Starting application", slog.Any("cfg", cfg))
 
-	//TODO: Implement logger
-
-	//TODO: Implement application
+	//Implemented application
+	application := app.New(log, cfg.GRPConfig.Port, cfg.StoragePath, cfg.TokenTTL)
+	go application.GRPCSrv.MustRun()
 
 	//TODO: Implement grpc server
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+
+	sign := <-stop
+
+	log.Info("Shutting down application", slog.Any("signal", sign.String()))
+
+	application.GRPCSrv.Stop()
+
+	log.Info("Application stopped")
 }
 
 func setupLogger(env string) *slog.Logger {
