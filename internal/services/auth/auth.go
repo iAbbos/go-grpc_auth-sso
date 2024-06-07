@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/iAbbos/go-grpc_auth-sso/internal/domain/models"
+	"github.com/iAbbos/go-grpc_auth-sso/internal/domain/repository"
 	"github.com/iAbbos/go-grpc_auth-sso/internal/pkg/lib/jwt"
 	"github.com/iAbbos/go-grpc_auth-sso/internal/pkg/lib/logger/sl"
-	"github.com/iAbbos/go-grpc_auth-sso/internal/services/storage"
 	"golang.org/x/crypto/bcrypt"
 	"log/slog"
 	"time"
@@ -69,7 +69,7 @@ func (a *Auth) Login(ctx context.Context, email, password string, appID int) (st
 
 	user, err := a.userProvider.User(ctx, email)
 	if err != nil {
-		if errors.Is(err, storage.ErrUserNotFound) {
+		if errors.Is(err, repository.ErrUserNotFound) {
 			a.log.Warn("user not found", sl.Err(err))
 
 			return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
@@ -123,7 +123,7 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email, password string) (int
 	id, err := a.userSaver.SaveUser(ctx, email, passHash)
 	if err != nil {
 
-		if errors.Is(err, storage.ErrUserExists) {
+		if errors.Is(err, repository.ErrUserExists) {
 			log.Warn("user already exists", sl.Err(err))
 
 			return 0, fmt.Errorf("%s: %w", op, ErrUserAlreadyExists)
@@ -152,13 +152,6 @@ func (a *Auth) IsAdmin(ctx context.Context, userID int64) (bool, error) {
 
 	isAdmin, err := a.userProvider.IsAdmin(ctx, userID)
 	if err != nil {
-
-		if errors.Is(err, storage.ErrAppNotFound) {
-			log.Warn("user not found", sl.Err(err))
-
-			return false, fmt.Errorf("%s: %w", op, ErrInvalidAppID)
-		}
-
 		return false, fmt.Errorf("%s: %w", op, err)
 	}
 
