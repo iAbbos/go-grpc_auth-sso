@@ -29,7 +29,7 @@ func main() {
 	application := app.New(log, cfg.GRPConfig.Port, cfg.StoragePath, cfg.TokenTTL)
 	go application.GRPCSrv.MustRun()
 
-	//TODO: Implement grpc server
+	//Implemented grpc server
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
