@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	ssov1 "github.com/iAbbos/go-grpc_auth-protos/gen/go/sso"
-	"github.com/iAbbos/go-grpc_auth-sso/internal/domain/repository"
 	"github.com/iAbbos/go-grpc_auth-sso/internal/services/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -72,7 +71,7 @@ func (s *serverAPI) IsAdmin(ctx context.Context, request *ssov1.IsAdminRequest) 
 
 	isAdmin, err := s.auth.IsAdmin(ctx, request.GetUserId())
 	if err != nil {
-		if errors.Is(err, repository.ErrUserNotFound) {
+		if errors.Is(err, auth.ErrUserNotFound) {
 			return nil, status.Error(codes.NotFound, "user not found")
 		}
 
